@@ -1,0 +1,33 @@
+{
+  "name": "node-red-contrib-enoceanip",
+  "author": {
+    "name": "Dominic Böhler"
+  },
+  "version": "0.0.9",
+  "description": "I/O node to accomplish a connection to Digital Concept's EnOcean Gateway.",
+  "dependencies": {},
+  "scripts": {},
+  "directories": {},
+  "keywords": [
+    "node-red",
+    "enocean",
+    "iot"
+  ],
+  "node-red": {
+    "nodes": {
+      "simple api": "simpleapi/simpleapi.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/boehlefeld/node-red-contrib-enoceanip"
+  },
+  "maintainers": [
+    {
+      "name": "Dominic Böhler",
+      "email": "dominic.boehler@digital-concepts.eu"
+    }],
+  "main": "simpleapi/simpleapi.js",
+  "license": "MIT",
+  "readme": "README.md"
+}
