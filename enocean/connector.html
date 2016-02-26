@@ -4,8 +4,9 @@
         color: "rgb(171, 209, 46)",
         defaults: {
             name: {value: "EnOceanGateway"},
-            ip: {value:"127.0.0.1"},
-            port: {value:"9090"},
+            host: {value:"127.0.0.1"},
+            port: {value:"8080"},
+            user: {value:"user"},
             password: {value:"user"}
         },
         inputs:1,
@@ -25,19 +26,26 @@
     </div>
 
     <div class="form-row">
-        <label for="node-input-ip"><i class="fa fa-plug"></i> IP</label>
-        <input type="text" id="node-input-ip" placeholder="127.0.0.1">
+        <label for="node-input-host"><i class="fa fa-plug"></i> Host</label>
+        <input type="text" id="node-input-host" placeholder="http://127.0.0.1">
     </div>
 
     <div class="form-row">
         <label for="node-input-port"><i class="fa fa-sort-numeric-asc"></i> Port</label>
-        <input type="text" id="node-input-port" placeholder="9090">
+        <input type="text" id="node-input-port" placeholder="8080">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-user"><i class="fa fa-user"></i> User</label>
+        <input type="text" id="node-input-user" placeholder="user">
     </div>
 
     <div class="form-row">
         <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
         <input type="text" id="node-input-password" placeholder="user">
     </div>
+
+    
 </script>
 
 <script type="text/x-red" data-help-name="EnOcean-IP">
@@ -52,17 +60,17 @@
     
 
     <p>
-    <i>
-    <br>send action to a device 
-    <br><b>send;deviceId=ABCDEF12;functionName1=functionValue1;functionName2=functionValue2</b>
-    <br>get a list of devices 
-    <br><b>devices</b>
-    <br>get a system info
-    <br><b>sytemInfo</b>
-    <br>get a system version 
-    <br><b>version</b>
+        <i>
+            <br>send action to a device 
+            <br><b>send;deviceId=ABCDEF12;functionName1=functionValue1;functionName2=functionValue2</b>
+            <br>get a list of devices 
+            <br><b>devices</b>
+            <br>get a system info
+            <br><b>sytemInfo</b>
+            <br>get a system version 
+            <br><b>version</b>
 
-    </i>
+        </i>
     </p>
 
     The function names with their interface specification can be retrieved through HTTP requests in a syntax:<br>
@@ -71,8 +79,8 @@
     <br>Ask the device <a href="http://dcgw.enocean-gateway.eu:8080/devices/01844BB0/profile">&#47;devices&#47;DEVICE-ID&#47;profile</a>
     
     <p>
-    Please visit the landing page on port 8080 for more detailed information about the JSON API.
-    <a href="http://dcgw.enocean-gateway.eu:8080">http:&#47;&#47;dcgw.enocean-gateway.eu:8080</a>
+        Please visit the landing page on port 8080 for more detailed information about the JSON API.
+        <a href="http://dcgw.enocean-gateway.eu:8080">http:&#47;&#47;dcgw.enocean-gateway.eu:8080</a>
     </p>
 
 </script>

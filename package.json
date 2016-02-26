@@ -5,7 +5,9 @@
   },
   "version": "0.0.9",
   "description": "I/O node to accomplish a connection to Digital Concept's EnOcean Gateway.",
-  "dependencies": {},
+  "dependencies": {
+    "request" : "^2.69.0"
+    },
   "scripts": {},
   "directories": {},
   "keywords": [
@@ -15,7 +17,7 @@
   ],
   "node-red": {
     "nodes": {
-      "simple api": "simpleapi/simpleapi.js"
+      "simple api": "enocean/connector.js"
     }
   },
   "repository": {
@@ -27,7 +29,7 @@
       "name": "Dominic Böhler",
       "email": "dominic.boehler@digital-concepts.eu"
     }],
-  "main": "simpleapi/simpleapi.js",
+  "main": "enocean/connector.js",
   "license": "MIT",
   "readme": "README.md"
 }
