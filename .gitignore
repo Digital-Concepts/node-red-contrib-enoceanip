@@ -35,3 +35,4 @@ jspm_packages
 
 # mac specific
 .DS_Store
+.jshintrc

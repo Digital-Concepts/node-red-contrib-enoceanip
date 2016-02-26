@@ -1,3 +1,5 @@
+'use strict';
+
 var request = require('request');
 var chunkstream = require('./chunkstream.js');
 
@@ -54,16 +56,16 @@ module.exports = function(RED) {
             try {
 
                 // simple validity check
-                if( msg.payload['deviceId'] === undefined ||
-                    msg.payload['state'] === undefined   ||
-                    msg.payload.state['functions'] === undefined
+                if( msg.payload.deviceId === undefined ||
+                    msg.payload.state === undefined   ||
+                    msg.payload.state.functions === undefined
                   ){
                         node.error('API Input Error', {'error0x02' : 'API Syntax: msg.payload = {  "deviceId":"FFFFFFFF", "state":{  "functions":[ {   "key":"NAME",  "value":"VALUE" } ] } }'});
                     return;
                 }
 
                 var deviceId = msg.payload.deviceId;
-                delete msg.payload['deviceId'];
+                delete msg.payload.deviceId;
 
                 request({   
                         url: config.host + ':' + config.port + '/devices/' + deviceId + '/state', 
@@ -77,7 +79,7 @@ module.exports = function(RED) {
                         msg.body = body;
                         
                         console.log(body);
-                        if (!error && response.statusCode == 200) {
+                        if (!error && response.statusCode === 200) {
                             // HOW TO HANDLE GOOD FEEDBACK ?
                         } else {
                             node.error('EnOcean API Input Error', {'error0x01' : body});
@@ -92,4 +94,4 @@ module.exports = function(RED) {
     }
 
     RED.nodes.registerType("EnOcean-IP",ConnectorNode);
-}
+};
