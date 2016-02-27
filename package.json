@@ -17,7 +17,7 @@
   ],
   "node-red": {
     "nodes": {
-      "simple api": "enocean/connector.js"
+      "simple api": "enocean/enoceansuite.js"
     }
   },
   "repository": {
@@ -29,7 +29,7 @@
       "name": "Dominic Böhler",
       "email": "dominic.boehler@digital-concepts.eu"
     }],
-  "main": "enocean/connector.js",
+  "main": "enocean/enoceansuite.js",
   "license": "MIT",
   "readme": "README.md"
 }

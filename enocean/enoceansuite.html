@@ -1,0 +1,192 @@
+<script type="text/javascript">
+    RED.nodes.registerType('enocean gw',{
+        category: 'config',
+        defaults: {
+            name: {value: ""},
+            host: {value:"127.0.0.1", required: true},
+            port: {value:8080, required: true, validate:RED.validators.number()},
+            user: {value:"user", required: true},
+            password: {value:"user", required: true}
+        },
+        label: function() {
+            return this.name||"enocean gw";
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="enocean gw">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-config-input-name" placeholder="enocean gw">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-host"><i class="fa fa-plug"></i> Host</label>
+        <input type="text" id="node-config-input-host" placeholder="http://127.0.0.1">
+    </div>
+
+    <div class="form-row">
+        <label for="node-config-input-port"><i class="fa fa-sort-numeric-asc"></i> Port</label>
+        <input type="text" id="node-config-input-port" placeholder="8080">
+    </div>
+
+    <div class="form-row">
+        <label for="node-config-input-user"><i class="fa fa-user"></i> User</label>
+        <input type="text" id="node-config-input-user" placeholder="user">
+    </div>
+
+    <div class="form-row">
+        <label for="node-config-input-password"><i class="fa fa-key"></i> Password</label>
+        <input type="text" id="node-config-input-password" placeholder="user">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="enocean gw">
+    <p>Send commands to an EnOcean API. A respond on the output knot will be produced.</p>
+    <p>Needs a message object containing a payload:</p>
+    <ul>
+       <li><code>msg.payload</code></li>
+    </ul>
+    <p><code>msg.payload</code> needs to be in a structure taken from an example eg.:</p>
+    <p><code> {  \"get\":\"devices\", \"state\":{  \"functions\":[ {   \"key\":\"NAME\",  \"value\":\"VALUE\" } ] } } </code></p>
+
+    <p>Available input commands are</p>
+    <ul>
+        <li>devices</li>
+        <li>systemInfo</li>
+        <li>profiles</li>
+    </ul>
+</script>
+
+
+
+<!-- ##################################################################################################################################-->
+
+
+<script type="text/javascript">
+    RED.nodes.registerType('enocean out',{
+        category: 'output',
+        defaults: {
+            gw: {value: "", type:"enocean gw"},
+            name: {value:""}
+        },
+        color: "rgb(171, 209, 46)",
+        inputs:1,
+        outputs:0,
+        icon: "dolphin.png",
+        align: "right",
+        label: function() {
+            return this.name||"enocean out";
+        }
+    });
+</script>
+
+<!-- OUT means knot on the left side -->
+<script type="text/x-red" data-template-name="enocean out">
+    <div class="form-row">
+        <label for="node-input-gw"><i class="fa fa-globe"></i> GW</label>
+        <input type="text" id="node-input-gw">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="enocean out">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="enocean out">
+    <p>Send messages to an EnOcean API.</p>
+    <p>Needs a message containing the properties:</p>
+    <ul>
+       <li><code>msg.deviceId</code></li>
+       <li><code>msg.state</code></li>
+    </ul>
+    <p><code>msg.state</code> needs to be in a structure taken from an example eg.:</p>
+    <p><code> {  \"deviceId\":\"FFFFFFFF\", \"state\":{  \"functions\":[ {   \"key\":\"NAME\",  \"value\":\"VALUE\" } ] } } </code></p>
+
+
+</script>
+
+
+
+<!-- ##################################################################################################################################-->
+
+<script type="text/javascript">
+    RED.nodes.registerType('enocean in',{
+        category: 'input',
+        color: "rgb(171, 209, 46)",
+        defaults: {
+            gw: {value: "",type:"enocean gw"},
+            name: {value: ""},
+            direction: { value: "from", required: true},
+            statesflag: { value: true}
+        },
+        inputs:0,
+        outputs:1,
+        icon: "dolphin.png",
+        align: "left",
+        label: function() {
+            return this.name||"enocean in";
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="enocean in">
+    <div class="form-row">
+        <label for="node-input-gw"><i class="fa fa-globe"></i> GW</label>
+        <input type="text" id="node-input-gw">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="EnOceanGateway" style="width: 70%;">
+    </div>
+    <div class="form-row" id="node-statesflag">
+        <label>&nbsp;</label>
+        <input type="checkbox" id="node-input-statesflag" style="display: inline-block; width: auto; vertical-align: top;">
+        <label for="node-input-statesflag" style="width: 70%;"> Receive states once before stream?</label>
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-direction"><i class="fa fa-arrows-v"></i> Direction</label>
+        <select id="node-input-direction">
+            <option value="from">from</option>
+            <option value="to">to</option>
+            <option value="both">both</option>
+        </select>
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="enocean in">
+    <p>A connection to Digital Concept&lsquo;s EnOcean Gateway will be accomplished. The node outputs events that occur on EnOcean radio. When edit screen is prompted, the node can be configured to connect on remote -or localhost either. Two APIs are available in general. This node will connect to the simpleapi that is bound on port 9090 by default and outputs a line-and-csv-separated output.
+    </p>
+
+    <p>For testing purposes a gateway has been made public. Please use <i>dcgw.enocean-gateway.eu</i> in the IP field in case you do not have any alternative. You will peek events from Stuttgart, Germany and be able to send actions as well. You need to follow a syntax in order to send commands.</p>
+
+
+    <p>Several commands are available on input side of Gateway&lsquo;s API.</p>
+
+    
+
+    <p>
+        <i>
+            <br>send action to a device 
+            <br><b>send;deviceId=ABCDEF12;functionName1=functionValue1;functionName2=functionValue2</b>
+            <br>get a list of devices 
+            <br><b>devices</b>
+            <br>get a system info
+            <br><b>sytemInfo</b>
+            <br>get a system version 
+            <br><b>version</b>
+
+        </i>
+    </p>
+
+    The function names with their interface specification can be retrieved through HTTP requests in a syntax:<br>
+    <br>All profiles <a href="http://dcgw.enocean-gateway.eu:8080/profiles">&#47;profiles</a>
+    <br>Single profile<a href="http://dcgw.enocean-gateway.eu:8080/profiles/f6-02-01">&#47;profiles&#47;f6-02-01</a>
+    <br>Ask the device <a href="http://dcgw.enocean-gateway.eu:8080/devices/01844BB0/profile">&#47;devices&#47;DEVICE-ID&#47;profile</a>
+    
+    <p>
+        Please visit the landing page on port 8080 for more detailed information about the JSON API.
+        <a href="http://dcgw.enocean-gateway.eu:8080">http:&#47;&#47;dcgw.enocean-gateway.eu:8080</a>
+    </p>
+
+</script>
