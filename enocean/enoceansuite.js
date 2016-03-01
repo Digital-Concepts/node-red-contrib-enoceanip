@@ -6,15 +6,29 @@ module.exports = function(RED) {
 
     function EnOceanGW(config){
         RED.nodes.createNode(this, config);     
+        var node = this;
 
         this.host = config.host;
         this.port = config.port;
         this.user = config.user;
         this.password = config.password;
         this.direction = config.direction;
+
+        var gwcon = new APIConnection(config);
+        RED.httpAdmin.get('/devices', function(req, res){
+            console.log("API CALL with");
+            node.req = req;
+            node.res = res;
+
+            gwcon.doRequest('devices', res);
+        });
+
+        gwcon.on('getanswer', function(response){
+            // send back HTTP result of /devices
+            node.res.send(response.devices);
+        });
     }
     RED.nodes.registerType("enocean gw",EnOceanGW);
-
 
     // Send state node
     function EnOceanOutNode(config){
@@ -31,6 +45,8 @@ module.exports = function(RED) {
             node.error("Network error: " + JSON.stringify(e));
             //node.status({fill: 'red', shape: "ring", text: "disconnected"});
         });
+//TODO: implement sent successfull
+//        gwcon.on('successfullsent')
 
         /*NODE-RED events*/
         this.on('input', function(msg) {     
@@ -68,7 +84,7 @@ module.exports = function(RED) {
 
         var node = this;
         var gwcon = new APIConnection(this.gw);
-        this.config = config;
+        node.config = config;
 
         gwcon.on('getanswer', function(answer){
             node.send(answer);
@@ -102,9 +118,13 @@ module.exports = function(RED) {
         });      
 
         gwcon.on('telegram', function(json){
-            var msg = {};
-            msg.payload = json;
-            node.send(msg);
+
+            // if filter set (devices = [deviceId1, deviceId2])
+            //if(node.devices.length === 0 || node.config.devices.indexOf(json.telegram.deviceId)!==-1){
+                var msg = {};
+                msg.payload = json;
+                node.send(msg);
+            //}
         }); 
 
         gwcon.on('error', function(e){

@@ -50,11 +50,8 @@ APIConnection.prototype.doRequest = function doRequest(endpoint){
           method: 'GET'
       },  
       function (error, response, body) {
-
           if (!error && response.statusCode === 200) {
-
-              self.emit('getanswer', body);
-
+              self.emit('getanswer', JSON.parse(body));
           } else {
               self.emit('error', 'EnOcean API Input Error', {'error0x01' : body});
           }
