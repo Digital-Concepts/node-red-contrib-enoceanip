@@ -78,11 +78,17 @@ module.exports = function(RED) {
     function EnOceanInNode(config) {
         RED.nodes.createNode(this, config);
 
+        var node = this;
+
         // Retrieve the configuration gw node
         this.gw = RED.nodes.getNode(config.gw);
 
+        // check whether a configuration (EnOceanGW()) was set
+        if(!this.gw || this.gw === null){
+            node.status({fill: 'yellow', shape: "ring", text: "No API-Conf set"});
+            return;
+        }
 
-        var node = this;
         node.gwcon = new APIConnection(this.gw);
         node.config = config;
 
@@ -136,9 +142,7 @@ module.exports = function(RED) {
 
         /*NODE-RED events*/
         this.on('close', function() {
-            if(node.gwcon){
-                node.gwcon.closeStream();
-            }
+            node.gwcon.closeStream();
         });
 
         var filter = { direction: config.direction};
