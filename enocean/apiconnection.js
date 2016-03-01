@@ -10,13 +10,18 @@ var APIConnection = module.exports = function APIConnection(mconfig) {
   EventEmitter.call(this);
   var config = mconfig;
 
-  console.log("APIConnection()" + mconfig);
-  console.log("APIConnection().host:" + mconfig.host);
+  var stream;
 
   this.getConfig = function() {
-        console.log("getConfig" + JSON.stringify(config));
+      return config;
+  };
 
-        return config;
+  this.getStream = function() {
+      return stream;
+  };
+
+  this.setStream = function(pstream) {
+      stream = pstream;
   };
 
   return this;
@@ -110,7 +115,7 @@ APIConnection.prototype.startstream = function startstream(filter) {
   console.log(JSON.stringify(options));
 
   //uri: 'http://172.28.28.150:8080/devices/stream?delimited=newLine&output=singleLine'
-  var stream = request(options, function (error, response, body) {
+  self.stream = request(options, function (error, response, body) {
       // body is the decompressed response body 
       if(!error && response !== undefined && response.statusCode === 200) {
         console.log('server encoded the data as: ' + (response.headers['content-encoding'] || 'identity'));
@@ -157,7 +162,7 @@ APIConnection.prototype.startstream = function startstream(filter) {
       self.chunks = '';
   });
 
-  stream.on('response', function(response) {
+  self.stream.on('response', function(response) {
       // executed once
       self.emit('connected');
 
@@ -181,8 +186,15 @@ APIConnection.prototype.startstream = function startstream(filter) {
   stream.on("end", function() {
       // won't happen - neverending stream
   });
+  this.setStream(self.stream);
 };
 
+APIConnection.prototype.closeStream = function closeStream(){
+      if(this.getStream()) {
+        this.getStream().pause();
+        this.getStream().end();
+      }
+};
 
 /*//local test
 var streamer = new DCStream();

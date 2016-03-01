@@ -83,10 +83,10 @@ module.exports = function(RED) {
 
 
         var node = this;
-        var gwcon = new APIConnection(this.gw);
+        node.gwcon = new APIConnection(this.gw);
         node.config = config;
 
-        gwcon.on('getanswer', function(answer){
+        node.gwcon.on('getanswer', function(answer){
             node.send(answer);
         });
 
@@ -105,11 +105,11 @@ module.exports = function(RED) {
             }
         });
 
-        gwcon.on('connected', function(){
+        node.gwcon.on('connected', function(){
             node.status({fill: 'green', shape: "ring", text: "connected"});
         });
 
-        gwcon.on('states', function(json){
+        node.gwcon.on('states', function(json){
             if(node.config.statesflag){
                 var msg = {};
                 msg.payload = json;
@@ -117,7 +117,7 @@ module.exports = function(RED) {
             }
         });      
 
-        gwcon.on('telegram', function(json){
+        node.gwcon.on('telegram', function(json){
 
             // if filter set (devices = [deviceId1, deviceId2])
             //if(node.devices.length === 0 || node.config.devices.indexOf(json.telegram.deviceId)!==-1){
@@ -127,7 +127,7 @@ module.exports = function(RED) {
             //}
         }); 
 
-        gwcon.on('error', function(e){
+        node.gwcon.on('error', function(e){
             node.error("Network error: " + e);
             node.status({fill: 'red', shape: "ring", text: "disconnected"});
         });
@@ -136,11 +136,13 @@ module.exports = function(RED) {
 
         /*NODE-RED events*/
         this.on('close', function() {
-            // TODO: implement close function
+            if(node.gwcon){
+                node.gwcon.closeStream();
+            }
         });
 
         var filter = { direction: config.direction};
-        gwcon.startstream(filter);
+        node.gwcon.startstream(filter);
     }
     RED.nodes.registerType("enocean in",EnOceanInNode);
 
