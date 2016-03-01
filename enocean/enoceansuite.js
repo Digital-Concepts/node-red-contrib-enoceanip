@@ -126,11 +126,11 @@ module.exports = function(RED) {
         node.gwcon.on('telegram', function(json){
 
             // if filter set (devices = [deviceId1, deviceId2])
-            //if(node.devices.length === 0 || node.config.devices.indexOf(json.telegram.deviceId)!==-1){
+            if(!node.config.devices || node.config.device === null || node.config.devices.indexOf(json.telegram.deviceId)!==-1){
                 var msg = {};
                 msg.payload = json;
                 node.send(msg);
-            //}
+            }
         }); 
 
         node.gwcon.on('error', function(e){
