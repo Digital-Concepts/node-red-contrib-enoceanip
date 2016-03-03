@@ -1,6 +1,8 @@
 'use strict';
 
+var createSchema = require('json-gate').createSchema;
 var APIConnection = require('./apiconnection.js');
+var apiSchema = createSchema(require('./ressources/apischema.json'));
 
 module.exports = function(RED) {
 
@@ -61,14 +63,12 @@ module.exports = function(RED) {
                 }
             }
 
-            // simple validity check
-            if( msg.payload.deviceId === undefined ||
-                msg.payload.state === undefined   ||
-                msg.payload.state.functions === undefined
-                ){
-                node.error('API Input Error', {'error0x02' : 'API Syntax: msg.payload = {  "deviceId":"01870183", "state":{  "functions":[ {   "key":"dimValue",  "value":"1.0" } ] } }'});
-            } else {
-                gwcon.putRequest(msg);
+            try {
+                apiSchema.validate(msg.payload);
+                gwcon.apiHandler(msg.payload);
+            } catch(err) {
+                console.log("Schema check failed: " + err.message);
+                errorFunction(err.message);
             }
         });
     }

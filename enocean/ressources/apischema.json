@@ -1,0 +1,36 @@
+{
+    "type" : "object",
+    "properties" : {
+        "ressource" : {
+            "type" : "string",
+            "required" : true
+        },
+        "items" : {
+            "type" : "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "state" : {
+            "type" : "object",
+            "properties" : {
+                "functions" : {
+                    "type" : "array",
+                    "items" : {
+                        "type" : "object",
+                        "properties" : {
+                            "key" : {
+                                "type" : "string",
+                                "required" : true
+                            },
+                            "value" : {
+                                "type" : "string",
+                                "required" : true
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
