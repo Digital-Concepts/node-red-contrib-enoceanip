@@ -25,7 +25,7 @@ module.exports = function(RED) {
 
         gwcon.on('getanswer', function(response){
             // send back HTTP result of /devices
-            node.res.send(response.devices);
+            self.res.send(response.devices);
         });
     }
     RED.nodes.registerType("enocean gw",EnOceanGW, { 
@@ -41,16 +41,27 @@ module.exports = function(RED) {
         var node = this;
 
         // Retrieve the configuration gw node
-        this.gw = RED.nodes.getNode(config.gw);
+        this.gw = RED.nodes.getNode(n.gw);
+
+        // check whether a configuration (EnOceanGW()) was set
+        if(!this.gw || this.gw === null){
+            node.status({fill: 'yellow', shape: "ring", text: "No API-Conf set"});
+            return;
+        }
 
         var gwcon = new APIConnection(this.gw.config, this.gw.credentials);
 
-        gwcon.on('error', function(e){
-            node.error("Network error: " + JSON.stringify(e));
-            //node.status({fill: 'red', shape: "ring", text: "disconnected"});
+        var errorFunction = function(e){
+            node.error("Error: " + e);
+            node.status({fill: 'red', shape: "ring", text: "message not sent"});
+        };
+
+        gwcon.on('error', errorFunction);
+
+        gwcon.on('getanswer', function(response){
+            node.send(response);
+            node.status({fill: 'green', shape: "ring", text: "message sent"});
         });
-//TODO: implement sent successfull
-//        gwcon.on('successfullsent')
 
         /*NODE-RED events*/
         this.on('input', function(msg) {     
@@ -73,6 +84,7 @@ module.exports = function(RED) {
                 errorFunction(err.message);
             }
         });
+
     }
     RED.nodes.registerType("enocean out",EnOceanOutNode);
 
@@ -96,21 +108,6 @@ module.exports = function(RED) {
 
         node.gwcon.on('getanswer', function(answer){
             node.send(answer);
-        });
-
-        this.on('input', function(msg) {  
-            if(msg.payload.get !== undefined){
-                switch(msg.payload.get.toLowerCase()){
-                    case 'devices':
-                    case 'profiles':
-                    case 'systemInfo':
-                        gwcon.getRequest(msg.payload.get);
-                        break;
-                    default:
-                        node.error('API Input Error', {'error0x03':'API Syntax: msg.payload = { "get" : "COMMAND_NAME"}'});
-                        break;
-                }   
-            }
         });
 
         node.gwcon.on('connected', function(){
@@ -152,44 +149,4 @@ module.exports = function(RED) {
     }
     RED.nodes.registerType("enocean in",EnOceanInNode);
 
-    // Function gw request state node
-    function EnOceanGWRequest(config){
-        RED.nodes.createNode(this, config);
-        var node = this;
-
-        // Retrieve the configuration gw node
-        this.gw = RED.nodes.getNode(config.gw);
-
-        var gwcon = new APIConnection(this.gw);
-        this.config = config;
-
-        gwcon.on('error', function(e){
-            node.error("Network error: " + JSON.stringify(e));
-        });
-
-        /*NODE-RED events*/
-        this.on('input', function(msg) {     
-
-            // Check type and convert if neccessary
-            if (typeof msg === 'string' || msg instanceof String){
-                try {
-                    msg = JSON.parse(msg);
-                } catch(e) {
-                    node.error('API Input Error: The input has no JSON format');
-                    return;
-                }
-            }
-
-            // simple validity check
-            if( msg.payload.deviceId === undefined ||
-                msg.payload.state === undefined   ||
-                msg.payload.state.functions === undefined
-                ){
-                node.error('API Input Error', {'error0x02' : 'API Syntax: msg.payload = {  "deviceId":"01870183", "state":{  "functions":[ {   "key":"dimValue",  "value":"1.0" } ] } }'});
-            } else {
-                gwcon.putRequest(msg);
-            }
-        });
-    }
-    RED.nodes.registerType("enocean gwrequest",EnOceanGWRequest);
 };
