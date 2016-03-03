@@ -4,25 +4,23 @@ var createSchema = require('json-gate').createSchema;
 var APIConnection = require('./apiconnection.js');
 var apiSchema = createSchema(require('./ressources/apischema.json'));
 
+
 module.exports = function(RED) {
 
-    function EnOceanGW(config){
-        RED.nodes.createNode(this, config);     
-        var node = this;
+    // Configuration node
+    function EnOceanGW(n){
+        RED.nodes.createNode(this, n);     
+        var self = this;
+        var gwcon = new APIConnection(n, this.credentials);
+        this.config = n;
 
-        this.host = config.host;
-        this.port = config.port;
-        this.user = config.user;
-        this.password = config.password;
-        this.direction = config.direction;
-
-        var gwcon = new APIConnection(config);
+        // This endpoint is needed to bypass cross domain protection
+        // No Ajax calls allowed from .html / .js, because of different origin.
         RED.httpAdmin.get('/devices', function(req, res){
-            console.log("API CALL with");
-            node.req = req;
-            node.res = res;
+            self.req = req;
+            self.res = res;
 
-            gwcon.doRequest('devices', res);
+            gwcon.apiHandler({'ressource' : 'devices'});
         });
 
         gwcon.on('getanswer', function(response){
@@ -30,18 +28,22 @@ module.exports = function(RED) {
             node.res.send(response.devices);
         });
     }
-    RED.nodes.registerType("enocean gw",EnOceanGW);
+    RED.nodes.registerType("enocean gw",EnOceanGW, { 
+        credentials: {
+             username: {type:"text"},
+             password: {type:"password"}
+        }
+    });
 
-    // Send state node
-    function EnOceanOutNode(config){
-        RED.nodes.createNode(this, config);
+    // Input / Output node
+    function EnOceanOutNode(n){
+        RED.nodes.createNode(this, n);
         var node = this;
 
         // Retrieve the configuration gw node
         this.gw = RED.nodes.getNode(config.gw);
 
-        var gwcon = new APIConnection(this.gw);
-        this.config = config;
+        var gwcon = new APIConnection(this.gw.config, this.gw.credentials);
 
         gwcon.on('error', function(e){
             node.error("Network error: " + JSON.stringify(e));
@@ -74,14 +76,14 @@ module.exports = function(RED) {
     }
     RED.nodes.registerType("enocean out",EnOceanOutNode);
 
-    // Streaming API node
-    function EnOceanInNode(config) {
-        RED.nodes.createNode(this, config);
+    // Input node (Streaming)
+    function EnOceanInNode(n) {
+        RED.nodes.createNode(this, n);
 
         var node = this;
 
         // Retrieve the configuration gw node
-        this.gw = RED.nodes.getNode(config.gw);
+        this.gw = RED.nodes.getNode(n.gw);
 
         // check whether a configuration (EnOceanGW()) was set
         if(!this.gw || this.gw === null){
@@ -89,8 +91,8 @@ module.exports = function(RED) {
             return;
         }
 
-        node.gwcon = new APIConnection(this.gw);
-        node.config = config;
+        node.gwcon = new APIConnection(this.gw.config, this.gw.credentials);
+        node.config = n;
 
         node.gwcon.on('getanswer', function(answer){
             node.send(answer);
@@ -145,7 +147,7 @@ module.exports = function(RED) {
             node.gwcon.closeStream();
         });
 
-        var filter = { direction: config.direction};
+        var filter = { direction: n.direction};
         node.gwcon.startstream(filter);
     }
     RED.nodes.registerType("enocean in",EnOceanInNode);

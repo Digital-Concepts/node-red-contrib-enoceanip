@@ -3,10 +3,12 @@
         category: 'config',
         defaults: {
             name: {value: ""},
-            host: {value:"127.0.0.1", required: true},
-            port: {value:8080, required: true, validate:RED.validators.number()},
-            user: {value:"user", required: true},
-            password: {value:"user", required: true}
+            host: {value:"http://127.0.0.1", required: true},
+            port: {value:8080, required: true, validate:RED.validators.number()}
+        },
+        credentials: {
+             username: {type:"text"},
+             password: {type:"password"}
         },
         label: function() {
             return this.name||"enocean gw";
@@ -30,13 +32,13 @@
     </div>
 
     <div class="form-row">
-        <label for="node-config-input-user"><i class="fa fa-user"></i> User</label>
-        <input type="text" id="node-config-input-user" placeholder="user">
+        <label for="node-config-input-username"><i class="fa fa-user"></i> Username</label>
+        <input type="text" id="node-config-input-username" placeholder="user">
     </div>
 
     <div class="form-row">
         <label for="node-config-input-password"><i class="fa fa-key"></i> Password</label>
-        <input type="text" id="node-config-input-password" placeholder="user">
+        <input type="password" id="node-config-input-password" placeholder="user">
     </div>
 </script>
 

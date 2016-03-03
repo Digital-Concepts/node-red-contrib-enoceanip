@@ -6,14 +6,18 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 var EventEmitter = require('events').EventEmitter;
 var request = require('request');
 
-var APIConnection = module.exports = function APIConnection(mconfig) {
+var APIConnection = module.exports = function APIConnection(mconfig, mcredentials) {
   EventEmitter.call(this);
   var config = mconfig;
-
+  var credentials = mcredentials;
   var stream;
 
-  this.getConfig = function() {
-      return config;
+  this.getBaseURL = function() {
+      return config.host + ':' + config.port;
+  };
+
+  this.getCredentials = function() {
+      return credentials;
   };
 
   this.getStream = function() {
@@ -29,30 +33,55 @@ var APIConnection = module.exports = function APIConnection(mconfig) {
 
 APIConnection.prototype = Object.create(EventEmitter.prototype);
 APIConnection.API_STREAM     = '/devices/stream?delimited=newLine&output=singleLine';
-APIConnection.API_SYSTEMINFO = '/systemInfo';
-APIConnection.API_DEVICES    = '/devices';
-APIConnection.API_PROFILES   = '/profiles';
+APIConnection.API_PROFILES   = 'profiles';
+APIConnection.API_STATES     = 'states';
 
-APIConnection.prototype.doRequest = function doRequest(endpoint){
-  var self = this;
-  var url = this.getConfig().host + ':' + this.getConfig().port;
 
-  switch(endpoint.toLowerCase()){
-    case 'devices':
-      url += APIConnection.API_DEVICES;
-      break;
-    case 'profiles':
-      url += APIConnection.API_PROFILES;
-      break;
-    case 'systeminfo':
-      url += APIConnection.API_SYSTEMINFO;
-      break;
+APIConnection.prototype.apiHandler = function apiHandler(msg){
+  
+  if(msg.items !== undefined){
+    // to deal with N-Requests
+    var self = this;
+
+      msg.items.forEach(function(entry) {
+        var path;
+
+        // Construct URL path
+        if(msg.ressource===APIConnection.API_STATES) {
+          path = '/devices/' + entry + '/state';
+        }
+        else if(msg.ressource===APIConnection.API_PROFILES) {
+          path = '/devices/' + entry + '/profile';
+        }
+        else {
+          path = '/' + msg.ressource + '/' + entry; 
+        }
+
+        // Check which HTTP method needs to be applied 
+        if(msg.state === undefined) {
+          self.doRequest(path, 'GET');
+        } else {
+          self.doRequest(path, 'PUT', { 'state' : msg.state });
+        }
+      });
+  } else {
+    // Single request
+    this.doRequest('/' + msg.ressource, 'GET');
   }
+};
+
+APIConnection.prototype.doRequest = function doRequest(path, method, payload){
+  var self = this;
+  var url = this.getBaseURL() + path;
 
   try {
       request({   
           url: url, 
-          method: 'GET'
+          method: method,
+          body: JSON.stringify(payload),
+          headers: {
+            accept: '*/*'
+          }
       },  
       function (error, response, body) {
           if (!error && response.statusCode === 200) {
@@ -60,7 +89,7 @@ APIConnection.prototype.doRequest = function doRequest(endpoint){
           } else {
               self.emit('error', 'EnOcean API Input Error', {'error0x01' : body});
           }
-      }).auth(this.getConfig().user, this.getConfig().password, false);
+      }).auth(this.getCredentials().username, this.getCredentials().password, false);
   } catch (e){
      self.emit('error','HTTP error', { "error0xFF" : "unknown" });
   }
@@ -100,12 +129,10 @@ APIConnection.prototype.startstream = function startstream(filter) {
   var self = this;
   self.initStage = 1;
   self.chunks = '';
-
-  console.log("startstream:this.getConfig().host:" + this.getConfig().host);
-
+  
   var options = {
     method: 'GET',
-    uri: this.getConfig().host + ':' + this.getConfig().port + APIConnection.API_STREAM + '&direction=' + filter.direction,
+    uri: self.getBaseURL() + APIConnection.API_STREAM + '&direction=' + filter.direction,
     rejectUnauthorized : false,
     headers: {
       accept: '*/*'
@@ -124,7 +151,7 @@ APIConnection.prototype.startstream = function startstream(filter) {
       } else {
         self.emit('error','Streaming error', { "error0x05" : error });
       }
-  }).auth(this.getConfig().user, this.getConfig().password, false).on('data', function(data) {
+  }).auth(this.getCredentials().username, this.getCredentials().password, false).on('data', function(data) {
       self.chunks += data.toString('utf8');
 
       // If true when packet has been received in chunks. (wait for nth packet in order to complete)
