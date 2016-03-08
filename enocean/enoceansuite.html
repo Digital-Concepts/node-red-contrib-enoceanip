@@ -1,17 +1,31 @@
+
 <script type="text/javascript">
-    RED.nodes.registerType('enocean gw',{
+    RED.nodes.registerType('enocean gw', {
         category: 'config',
         defaults: {
-            name: {value: ""},
-            host: {value:"http://127.0.0.1", required: true},
-            port: {value:8080, required: true, validate:RED.validators.number()}
+            name: {
+                value: ""
+            },
+            host: {
+                value: "http://127.0.0.1",
+                required: true
+            },
+            port: {
+                value: 8080,
+                required: true,
+                validate: RED.validators.number()
+            }
         },
         credentials: {
-             username: {type:"text"},
-             password: {type:"password"}
+            username: {
+                type: "text"
+            },
+            password: {
+                type: "password"
+            }
         },
         label: function() {
-            return this.name||"enocean gw";
+            return this.name || "enocean gw";
         }
     });
 </script>
@@ -42,34 +56,26 @@
     </div>
 </script>
 
-<script type="text/x-red" data-help-name="enocean gw">
-    <p>Send commands to an EnOcean API. A respond on the output knot will be produced.</p>
-    <p>Needs a message object containing a payload:</p>
-    <ul>
-       <li><code>msg.payload</code></li>
-    </ul>
-    <p><code>msg.payload</code> needs to be in a structure taken from an example eg.:</p>
-    <p><code> {  \"get\":\"devices\", \"state\":{  \"functions\":[ {   \"key\":\"NAME\",  \"value\":\"VALUE\" } ] } } </code></p>
-
-    <p>Available input commands are</p>
-    <ul>
-        <li>devices</li>
-        <li>systemInfo</li>
-        <li>profiles</li>
-    </ul>
-</script>
-
-
-
 <!-- ##########################################################################################################-->
 
 
 <script type="text/javascript">
-    RED.nodes.registerType('enocean out',{
+    RED.nodes.registerType('enocean out', {
         category: 'output',
         defaults: {
-            gw: {value: "", type:"enocean gw"},
-            name: {value:""}
+            gw: {
+                value: "",
+                type: "enocean gw"
+            },
+            name: {
+                value: ""
+            },
+            hasoutput: {
+                value: "none"
+            },
+            outputs: {
+                value: 1
+            }
         },
         color: "rgb(171, 209, 46)",
         inputs: 1,
@@ -77,7 +83,16 @@
         icon: "dolphin.png",
         align: "right",
         label: function() {
-            return this.name||"enocean out";
+            return this.name || "enocean out";
+        },
+        oneditsave: function() {
+
+            var option = $("#node-input-hasoutput option:selected").val();
+            if (option === 'self') {
+                this.outputs = 1;
+            } else {
+                this.outputs = 0;
+            }
         }
     });
 </script>
@@ -92,19 +107,48 @@
         <label for="node-input-name"><i class="icon-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="enocean out">
     </div>
+    <div class="form-row">
+        <label for="node-input-hasoutput"><i class="fa fa-sign-out"></i> Responses</label>
+        <select id="node-input-hasoutput">
+            <option value="none"> None</option>
+            <option value="self"> Self</option>
+        </select>
+    </div>
+    <div class="form-tips">
+        <p>Messages you inject will be sent to the API and result in responses. If <code>Responses</code> is set to <code>Self</code> responses are enabled and can be used in node-red flow accordingly.</p>
+    </div>
 </script>
 
 <script type="text/x-red" data-help-name="enocean out">
-    <p>Send messages to an EnOcean API.</p>
-    <p>Needs a message containing the properties:</p>
+    <p>This node facilitates flows in sending json objects to EnOcean API more easier than using HTTP modules.</p>
+    <p><code>enocean out</code> is preferably used when a state change on a device needs to be applied, even though information can be retrieved too (e.g. requesting device states). A state can be requested on both, bidirectional and unidirectional enocean devices. Whereas only bidirectional EnOcean devices will accept changes to their state.</p>
+
+    <p><b>Usage, API ressources</b></p>
+    <p><code>enocean out</code> composes http requests and responds accordingly, when JSON messages are injected adequately. A json object is expected to contain a <code>payload</code> property that will address one ressource out of state(s), device(s), profile(s) or API info. { payload: <code>...</code> }</p>
     <ul>
-       <li><code>msg.deviceId</code></li>
-       <li><code>msg.state</code></li>
+        <li><code>{"ressource" : "states"}</code></li>
+        <li><code>{"ressource" : "devices"}</code></li>
+        <li><code>{"ressource" : "profiles"}</code></li>
     </ul>
-    <p><code>msg.state</code> needs to be in a structure taken from an example eg.:</p>
-    <p><code> {  \"deviceId\":\"FFFFFFFF\", \"state\":{  \"functions\":[ {   \"key\":\"NAME\",  \"value\":\"VALUE\" } ] } } </code></p>
 
+    <p>Requests can be targeted, that will include more information for each ressource. Specifically setting <code>items</code> array will result in a single respond for any item given. Valid items are provided with <code>deviceId</code>, <code>friendlyId</code> or any <code>profileId</code>.</p>
 
+    <p>Sample requests:</p>
+    <ul>
+        <li><code>{"ressource" : "states", "items" : ["FFDDBBCC", "kitchenThermostat"]}</code></li>
+        <li><code>{"ressource" : "devices", "items" : ["kitchenThermostat"]}</code></li>
+        <li><code>{"ressource" : "profiles", "items" : ["FFDDBBCC", "F6-02-01"]}</code></li>
+    </ul>
+
+    <p><b>Change device state</b></p>
+    <p>The schema looks pretty much the same as requesting a state, except that you need to give a new <code>state</code>. A property identically named takes care of it.</p>
+
+    <p><code>{ "ressource" : "states", "items" : ["kitchenLight"], "state": { "functions" : [{"key": "dimValue", "value" : "70"}] }}</code></p>
+
+    <p><b>How state should look like?</b></p>
+    <p>Request a device profile gives indication on which information (key-value pairs) is needed. Pick one functionGroup (a set of key-value pairs) containing a direction <code>to</code> and provide at least any key-value pair that is <b>not</b> stated with a <code>defaultValue</code>. A key-value will be set with its defaultValue automatically whenever not given.</p>
+
+    <p>Feel free to use native REST interface by means of http nodes instead. More documentation is available <a href="http://enocean-gateway.eu/images/documents/Documentation/index.html?rest-resources.html">here</a>.</p>
 </script>
 
 
@@ -146,9 +190,9 @@
     <div class="form-row node-input-target-row" style="display: none;">
         <div id="node-input-status-target-container-div" style="position: relative;   box-sizing: border-box; border-radius: 2px; height: 180px;  border: 1px solid #ccc;overflow:hidden; ">
             <div style="box-sizing: border-box; line-height: 20px; font-size: 0.8em; border-bottom: 1px solid #ddd; height: 20px;">
-              <input type="checkbox" data-i18n="[title]status.label.selectAll" id="node-input-target-node-checkbox-all" style="width: 30px; margin: 0 2px 1px 2px;">
-              <div style="display: inline-block;"><a id="node-input-target-sort-label" href="#" data-i18n="[title]status.label.sortByLabel"><span data-i18n="status.label.node"></span> <i class="node-input-status-sort-label-a fa fa-caret-down"></i><i class="node-input-status-sort-label-d fa fa-caret-up"></i></a></div>
-              <div style="position: absolute; right: 10px; width: 50px; display: inline-block; text-align: right;"><a id="node-input-target-sort-type" href="#" data-i18n="[title]status.label.sortByType"><i class="node-input-status-sort-sublabel-a fa fa-caret-down"></i><i class="node-input-status-sort-sublabel-d fa fa-caret-up"></i> <span data-i18n="status.label.type"></span></a></div>
+                <input type="checkbox" data-i18n="[title]status.label.selectAll" id="node-input-target-node-checkbox-all" style="width: 30px; margin: 0 2px 1px 2px;">
+                <div style="display: inline-block;"><a id="node-input-target-sort-label" href="#" data-i18n="[title]status.label.sortByLabel"><span data-i18n="status.label.node">FriendlyId</span> <i class="node-input-status-sort-label-a fa fa-caret-down"></i><i class="node-input-status-sort-label-d fa fa-caret-up"></i></a></div>
+                <div style="position: absolute; right: 10px; width: 50px; display: inline-block; text-align: right;"><a id="node-input-target-sort-type" href="#" data-i18n="[title]status.label.sortByType"><i class="node-input-status-sort-sublabel-a fa fa-caret-down"></i><i class="node-input-status-sort-sublabel-d fa fa-caret-up"></i> <span data-i18n="status.label.type">DeviceId</span></a></div>
             </div>
             <div style="background: #fbfbfb; box-sizing: border-box; position:absolute; top:20px;bottom:0;left:0px;right:0px; overflow-y: scroll; overflow-x: hidden;">
                 <ul id="node-input-status-target-container" style=" list-style-type:none; margin: 0;"></ul>
@@ -157,85 +201,77 @@
     </div>
 
     <div class="form-tips">
-        <p>Among direction filter options <code>from, to, both</code> you can limit telegrams if they have been received (from) by the gateway or sent (to) towards enocean devices.</p> 
-        <p><code>from</code> does include feedbacks from sensors and actuator as well.</p>
+        <p>Among direction filter options <code>from</code>, <code>to</code> and <code>both</code> you can limit telegrams if they have been received (from) by the gateway or sent (to) towards enocean devices.</p>
+        <p><code>from</code> does include feedbacks from sensors and actuators as well.</p>
     </div>
 </script>
 
 <script type="text/x-red" data-help-name="enocean in">
-    <p>A connection to Digital Concept&lsquo;s EnOcean Gateway will be accomplished. The node outputs events that occur on EnOcean radio. When edit screen is prompted, the node can be configured to connect on remote -or localhost either. Two APIs are available in general. This node will connect to the simpleapi that is bound on port 9090 by default and outputs a line-and-csv-separated output.
-    </p>
+    <p>Enocean device updates are being received in realtime and injected into the flow. A HTTP streaming connection will be established as soon as a flow is deployed and a valid configuration has been given.</p>
+    <p><b>Rather streaming than polling</b></p>
+    <p><code>enocean in</code> node works independant and active in comparison to polling where it is required to request regurarly. Enocean api counterpart pushes events to <code>enocean in</code> actively.</p>
 
-    <p>For testing purposes a gateway has been made public. Please use <i>dcgw.enocean-gateway.eu</i> in the IP field in case you do not have any alternative. You will peek events from Stuttgart, Germany and be able to send actions as well. You need to follow a syntax in order to send commands.</p>
+    <p><b>Events</b></p>
+    <p>Message objects will be passed and always define a <code>msg.payload</code> object in typical node-red manner. Expect any <code>payload</code> object to contain a <code>header</code> property that indicates what type of information does follow up.</p>
+    Information you may encounter:
+    <ul>
+        <li><code>states</code> - last known device states, if one is available</li>
+        <li><code>telegram</code> - one device state event</li>
+    </ul>
 
+    <p>Example message object (including a telegram):
+        <code>
+    { "payload": { "header": { "content": "telegram", "timestamp": "2016-03-07T08:37:13.578+0100" }, "telegram": { "deviceId": "FEFEA199", "friendlyId": "4Button", "timestamp": "2016-03-07T08:37:13.578+0100", "direction": "from", "functions": [ { "key": "buttonAI", "value": "0", "valueKey": "released", "meaning": "Button released" } ], "telegramInfo": { "data": "00", "status": "20", "dbm": -88, "rorg": "F6" } } }, "_msgid": "f3ab21cd.0c54e" }
+    </code></p>
 
-    <p>Several commands are available on input side of Gateway&lsquo;s API.</p>
+    <p><b>Filter options:</b></p>
+    <p>Assuming you want to limit events that happening, you may have a look to available filter options. Information type <code>states</code> can be omitted at all, although <code>telegram</code> events can be reduced to specific devices only. Furthermore a filter to <code>direction</code> can be set that will influence the output if the information has been received or sent by the API. That means <b>requested</b> device state changes are also events with direction <code>to</code>. Be aware that these messages have only been sent by the API not yet acknowledged by the actuator. In most of the cases you can ignore these messages and wait until a feedback (event) with direction <code>from</code> arrives.</p>
 
-    
-
-    <p>
-        <i>
-            <br>send action to a device 
-            <br><b>send;deviceId=ABCDEF12;functionName1=functionValue1;functionName2=functionValue2</b>
-            <br>get a list of devices 
-            <br><b>devices</b>
-            <br>get a system info
-            <br><b>sytemInfo</b>
-            <br>get a system version 
-            <br><b>version</b>
-
-        </i>
-    </p>
-
-    The function names with their interface specification can be retrieved through HTTP requests in a syntax:<br>
-    <br>All profiles <a href="http://dcgw.enocean-gateway.eu:8080/profiles">&#47;profiles</a>
-    <br>Single profile<a href="http://dcgw.enocean-gateway.eu:8080/profiles/f6-02-01">&#47;profiles&#47;f6-02-01</a>
-    <br>Ask the device <a href="http://dcgw.enocean-gateway.eu:8080/devices/01844BB0/profile">&#47;devices&#47;DEVICE-ID&#47;profile</a>
-    
-    <p>
-        Please visit the landing page on port 8080 for more detailed information about the JSON API.
-        <a href="http://dcgw.enocean-gateway.eu:8080">http:&#47;&#47;dcgw.enocean-gateway.eu:8080</a>
-    </p>
-
+    <p>More information on Enocean api you can find <a href="http://enocean-gateway.eu/images/documents/Documentation/index.html?enocean-api.html">here</a>.</p>
 </script>
 
 <style>
-#node-input-status-target-container {
-    position: relative;
-}
-#node-input-status-target-container li {
-    padding: 2px 5px;
-    background: none;
-    font-size: 0.8em;
-    margin:0;
-    white-space: nowrap;
-}
-#node-input-status-target-container li label {
-    margin-bottom: 0;
-    width: 100%;
-}
-#node-input-status-target-container li label input {
-    vertical-align: top;
-    width:15px;
-    margin-right: 10px;
-}
-#node-input-status-target-container li:hover,
-#node-input-status-target-container li:hover .node-input-target-node-sublabel {
-    background: #f0f0f0;
-}
-.node-input-target-node-sublabel {
-    position:absolute;
-    right: 0px;
-    padding-right: 10px;
-    padding-left: 10px;
-    font-size: 0.8em;
-    background: #fbfbfb;
-}
+    #node-input-status-target-container {
+        position: relative;
+    }
+    
+    #node-input-status-target-container li {
+        padding: 2px 5px;
+        background: none;
+        font-size: 0.8em;
+        margin: 0;
+        white-space: nowrap;
+    }
+    
+    #node-input-status-target-container li label {
+        margin-bottom: 0;
+        width: 100%;
+    }
+    
+    #node-input-status-target-container li label input {
+        vertical-align: top;
+        width: 15px;
+        margin-right: 10px;
+    }
+    
+    #node-input-status-target-container li:hover,
+    #node-input-status-target-container li:hover .node-input-target-node-sublabel {
+        background: #f0f0f0;
+    }
+    
+    .node-input-target-node-sublabel {
+        position: absolute;
+        right: 0px;
+        padding-right: 10px;
+        padding-left: 10px;
+        font-size: 0.8em;
+        background: #fbfbfb;
+    }
 </style>
 
 
 <script type="text/javascript">
-    RED.nodes.registerType('enocean in',{
+    RED.nodes.registerType('enocean in', {
         category: 'input',
         color: "rgb(171, 209, 46)",
         defaults: {
@@ -265,8 +301,8 @@
         icon: "dolphin.png",
         align: "left",
         label: function() {
-            return this.name||"enocean in";
-        }, 
+            return this.name || "enocean in";
+        },
         oneditprepare: function() {
             var nodeList = $("#node-input-status-target-container");
             var node = this;
@@ -278,51 +314,65 @@
                     return;
 
                 $.ajax({
-                  type: "GET",
-                  url: "/devices",
-                  dataType: 'json',
-                  success: function (data){
+                    type: "GET",
+                    url: "/devices",
+                    dataType: 'json',
+                    success: function(data) {
+                        $("#node-input-status-target-container").empty();
 
-                    var allChecked = true;
-                    $.each(data, function(i,item){
+                        var allChecked = true;
+                        $.each(data, function(i, item) {
 
-                        var isChecked = node.devices.indexOf(item.deviceId) !== -1;
-                        allChecked = allChecked && isChecked;
-                        var container = $('<li/>',{class:"node-input-target-node"});
-                        var row = $('<label/>',{for:"node-input-target-node-"+item.deviceId}).appendTo(container);
-                        $('<input>',{type:"checkbox",class:"node-input-target-node-checkbox",id:"node-input-target-node-"+item.deviceId})
-                            .data('node-id',item.deviceId)
-                            .prop('checked', isChecked)
-                            .appendTo(row);
-                        container.on('mouseover',function(e) {
-                            item.highlighted = true;
-                            item.dirty = true;
-                            RED.view.redraw();
+                            var isChecked = node.devices.indexOf(item.deviceId) !== -1;
+                            allChecked = allChecked && isChecked;
+                            var container = $('<li/>', {
+                                class: "node-input-target-node"
+                            });
+                            var row = $('<label/>', {
+                                for: "node-input-target-node-" + item.deviceId
+                            }).appendTo(container);
+                            $('<input>', {
+                                    type: "checkbox",
+                                    class: "node-input-target-node-checkbox",
+                                    id: "node-input-target-node-" + item.deviceId
+                                })
+                                .data('node-id', item.deviceId)
+                                .prop('checked', isChecked)
+                                .appendTo(row);
+                            container.on('mouseover', function(e) {
+                                item.highlighted = true;
+                                item.dirty = true;
+                                RED.view.redraw();
+                            });
+                            container.on('mouseout', function(e) {
+                                item.highlighted = false;
+                                item.dirty = true;
+                                RED.view.redraw();
+                            });
+                            var labelSpan = $('<span>');
+                            var label;
+                            var sublabel;
+
+                            label = item.friendlyId;
+                            sublabel = item.deviceId;
+                            $('<span>', {
+                                class: "node-input-target-node-label",
+                                style: "white-space:nowrap"
+                            }).text(label).appendTo(row);
+                            $('<span>', {
+                                class: "node-input-target-node-sublabel"
+                            }).text(sublabel).appendTo(row);
+                            container.appendTo(nodeList);
                         });
-                        container.on('mouseout',function(e) {
-                            item.highlighted = false;
-                            item.dirty = true;
-                            RED.view.redraw();
+                        $(".node-input-target-node-checkbox").change(function() {
+                            if (!this.checked) {
+                                $("#node-input-target-node-checkbox-all").prop('checked', false);
+                            }
                         });
-                        var labelSpan = $('<span>');
-                        var label;
-                        var sublabel;
-                        
-                        label = item.friendlyId;
-                        sublabel = item.deviceId;
-                        $('<span>',{class:"node-input-target-node-label",style:"white-space:nowrap"}).text(label).appendTo(row);
-                        $('<span>',{class:"node-input-target-node-sublabel"}).text(sublabel).appendTo(row);
-                        container.appendTo(nodeList);
-                    });
-                    $(".node-input-target-node-checkbox").change(function() {
-                        if (!this.checked) {
-                            $("#node-input-target-node-checkbox-all").prop('checked',false);
-                        }
-                    });
-                    $("#node-input-target-node-checkbox-all").prop('checked',allChecked);
-                    sortNodeList('label');
+                        $("#node-input-target-node-checkbox-all").prop('checked', allChecked);
+                        sortNodeList('label');
 
-                  }
+                    }
                 });
             }
 
@@ -334,28 +384,33 @@
                     currentSortOrder = 'a';
                 } else {
                     if (currentSort === sortOn) {
-                        currentSortOrder = (currentSortOrder === 'a'?'d':'a');
+                        currentSortOrder = (currentSortOrder === 'a' ? 'd' : 'a');
                     } else {
                         currentSortOrder = 'a';
                     }
                     currentSort = sortOn;
                 }
-                nodeList.data('currentSort',currentSort);
-                nodeList.data('currentSortOrder',currentSortOrder);
+                nodeList.data('currentSort', currentSort);
+                nodeList.data('currentSortOrder', currentSortOrder);
                 $("#node-input-status-target-container-div .fa").hide();
-                $(".node-input-status-sort-"+currentSort+"-"+currentSortOrder).show();
+                $(".node-input-status-sort-" + currentSort + "-" + currentSortOrder).show();
                 var items = nodeList.find("li").get();
-                items.sort(function(a,b) {
-                    var labelA = $(a).find(".node-input-target-node-"+currentSort).text().toLowerCase();
-                    var labelB = $(b).find(".node-input-target-node-"+currentSort).text().toLowerCase();
-                    if (labelA < labelB) { return currentSortOrder==='a'?-1:1; }
-                    if (labelA > labelB) { return currentSortOrder==='a'?1:-1; }
+                items.sort(function(a, b) {
+                    var labelA = $(a).find(".node-input-target-node-" + currentSort).text().toLowerCase();
+                    var labelB = $(b).find(".node-input-target-node-" + currentSort).text().toLowerCase();
+                    if (labelA < labelB) {
+                        return currentSortOrder === 'a' ? -1 : 1;
+                    }
+                    if (labelA > labelB) {
+                        return currentSortOrder === 'a' ? 1 : -1;
+                    }
                     return 0;
                 });
-                $.each(items, function(i, li){
+                $.each(items, function(i, li) {
                     nodeList.append(li);
                 });
             }
+
             $("#node-input-target-sort-label").click(function(e) {
                 e.preventDefault();
                 sortNodeList('label');
@@ -365,7 +420,7 @@
                 sortNodeList('sublabel')
             });
             $("#node-input-target-node-checkbox-all").change(function() {
-                $(".node-input-target-node-checkbox").prop('checked',this.checked);
+                $(".node-input-target-node-checkbox").prop('checked', this.checked);
             })
             $("#node-input-devicefilter").change(function(e) {
                 var option = $(this).children("option:selected").val();
@@ -390,24 +445,24 @@
             function dialogResize() {
                 var rows = $("#dialog-form>div:not(.node-input-target-row)");
                 var height = $("#dialog-form").height();
-                for (var i=0;i<rows.size();i++) {
+                for (var i = 0; i < rows.size(); i++) {
                     height -= $(rows[i]).outerHeight(true);
                 }
                 var editorRow = $("#dialog-form>div.node-input-target-row");
-                height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
-                $("#node-input-status-target-container-div").css("height",height+"px");
+                height -= (parseInt(editorRow.css("marginTop")) + parseInt(editorRow.css("marginBottom")));
+                $("#node-input-status-target-container-div").css("height", height + "px");
             };
-            $( "#dialog" ).on("dialogresize", dialogResize);
-            $( "#dialog" ).one("dialogopen", function(ev) {
-                var size = $( "#dialog" ).dialog('option','sizeCache-status');
+            $("#dialog").on("dialogresize", dialogResize);
+            $("#dialog").one("dialogopen", function(ev) {
+                var size = $("#dialog").dialog('option', 'sizeCache-status');
                 if (size) {
-                    $("#dialog").dialog('option','width',size.width);
-                    $("#dialog").dialog('option','height',size.height);
+                    $("#dialog").dialog('option', 'width', size.width);
+                    $("#dialog").dialog('option', 'height', size.height);
                     dialogResize();
                 }
             });
-            $( "#dialog" ).one("dialogclose", function(ev,ui) {
-                $( "#dialog" ).off("dialogresize",dialogResize);
+            $("#dialog").one("dialogclose", function(ev, ui) {
+                $("#dialog").off("dialogresize", dialogResize);
             });
         },
         oneditsave: function() {
@@ -417,11 +472,11 @@
             if (selected === 'none') {
                 node.devices = null;
             } else {
-                
+
                 node.devices = [];
                 $(".node-input-target-node-checkbox").each(function(n) {
                     if ($(this).prop("checked")) {
-                        console.log(JSON.stringify($(this)));
+
                         node.devices.push($(this).data('node-id'));
                     }
                 });
