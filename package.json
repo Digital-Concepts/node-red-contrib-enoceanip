@@ -3,21 +3,23 @@
   "author": {
     "name": "Dominic Böhler"
   },
-  "version": "0.0.9",
-  "description": "I/O node to accomplish a connection to Digital Concept's EnOcean Gateway.",
+  "version": "0.1.0",
+  "description": "I/O nodes for Node-RED to communicate with EnOcean API. Copyright (c) 2016 Digital Concepts",
   "dependencies": {
-    "request" : "^2.69.0"
+    "request" : "~2.69.0",
+    "json-gate" : "~0.8.22"
     },
-  "scripts": {},
-  "directories": {},
   "keywords": [
     "node-red",
     "enocean",
-    "iot"
+    "iot",
+    "home automation",
+    "digital concepts",
+    "energy harvesting"
   ],
   "node-red": {
     "nodes": {
-      "simple api": "enocean/enoceansuite.js"
+      "enocean": "enocean/enoceansuite.js"
     }
   },
   "repository": {
@@ -30,6 +32,5 @@
       "email": "dominic.boehler@digital-concepts.eu"
     }],
   "main": "enocean/enoceansuite.js",
-  "license": "MIT",
-  "readme": "README.md"
+  "license": "MIT"
 }
