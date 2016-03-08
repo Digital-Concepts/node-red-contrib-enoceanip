@@ -72,8 +72,8 @@
             name: {value:""}
         },
         color: "rgb(171, 209, 46)",
-        inputs:1,
-        outputs:0,
+        inputs: 1,
+        outputs: 1,
         icon: "dolphin.png",
         align: "right",
         label: function() {
@@ -137,9 +137,9 @@
 
 
     <div class="form-row">
-        <label style="width: auto" for="node-input-devices"> Device filter</label>
-        <select id="node-input-devices-select">
-            <option value="all"> None</option>
+        <label for="node-input-devicefilter"><i class="fa fa-filter"></i>  Device filter</label>
+        <select id="node-input-devicefilter">
+            <option value="none"> None</option>
             <option value="target"> Selected</options>
         </select>
     </div>
@@ -239,14 +239,29 @@
         category: 'input',
         color: "rgb(171, 209, 46)",
         defaults: {
-            gw: {value: "",type:"enocean gw"},
-            name: {value: ""},
-            direction: { value: "from", required: true},
-            statesflag: { value: true},
-            devices: { value: []}
+            gw: {
+                value: "",
+                type: "enocean gw"
+            },
+            name: {
+                value: ""
+            },
+            direction: {
+                value: "from",
+                required: true
+            },
+            statesflag: {
+                value: true
+            },
+            devicefilter: {
+                value: "none"
+            },
+            devices: {
+                value: null
+            }
         },
-        inputs:0,
-        outputs:1,
+        inputs: 0,
+        outputs: 1,
         icon: "dolphin.png",
         align: "left",
         label: function() {
@@ -258,11 +273,8 @@
 
             function createNodeList() {
                 node.devices = node.devices || [];
-                nodeList.empty();
-                console.log("node.gw:" + JSON.stringify(node.gw));
 
-                //RED.nodes.getNode(config.gw);
-                if(node.gw===undefined || node.gw === '')
+                if (node.gw === undefined || node.gw === '' || node.gw === '_ADD_')
                     return;
 
                 $.ajax({
@@ -355,21 +367,26 @@
             $("#node-input-target-node-checkbox-all").change(function() {
                 $(".node-input-target-node-checkbox").prop('checked',this.checked);
             })
-            $("#node-input-devices-select").change(function(e) {
-                var devices = $(this).children("option:selected").val();
-                if (devices === "target") {
+            $("#node-input-devicefilter").change(function(e) {
+                var option = $(this).children("option:selected").val();
+                if (option === "target") {
                     createNodeList();
                     $(".node-input-target-row").show();
                 } else {
                     $(".node-input-target-row").hide();
                 }
             });
-            if (this.devices == null) {
-                $("#node-input-devices-select").val("all");
+
+            if (this.devices !== null) {
+                $("#node-input-devicefilter").val("target");
             } else {
-                $("#node-input-devices-select").val("target");
+                $("#node-input-devicefilter").val("none");
             }
-            $("#node-input-devices-select").change();
+
+            $("#node-input-gw").change(function() {
+                node.gw = $("#node-input-gw option:selected").val();
+            });
+
             function dialogResize() {
                 var rows = $("#dialog-form>div:not(.node-input-target-row)");
                 var height = $("#dialog-form").height();
@@ -395,9 +412,9 @@
         },
         oneditsave: function() {
             var node = this;
+            var selected = $("#node-input-devicefilter").children("option:selected").val();
 
-            var selected = $("#node-input-devices-select").children("option:selected").val();
-            if (selected === 'all') {
+            if (selected === 'none') {
                 node.devices = null;
             } else {
                 
