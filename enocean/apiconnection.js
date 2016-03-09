@@ -48,12 +48,12 @@ APIConnection.prototype.apiHandler = function apiHandler(msg) {
             var path;
 
             // Construct URL path
-            if (msg.ressource === APIConnection.API_STATES) {
+            if (msg.resource === APIConnection.API_STATES) {
                 path = '/devices/' + entry + '/state';
-            } else if (msg.ressource === APIConnection.API_PROFILES) {
+            } else if (msg.resource === APIConnection.API_PROFILES) {
                 path = '/devices/' + entry + '/profile';
             } else {
-                path = '/' + msg.ressource + '/' + entry;
+                path = '/' + msg.resource + '/' + entry;
             }
 
             // Check which HTTP method needs to be applied 
@@ -67,7 +67,7 @@ APIConnection.prototype.apiHandler = function apiHandler(msg) {
         });
     } else {
         // Single request
-        this.doRequest('/' + msg.ressource, 'GET');
+        this.doRequest('/' + msg.resource, 'GET');
     }
 };
 

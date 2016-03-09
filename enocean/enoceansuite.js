@@ -3,7 +3,7 @@
 
 var createSchema = require('json-gate').createSchema;
 var APIConnection = require('./apiconnection.js');
-var apiSchema = createSchema(require('./ressources/apischema.json'));
+var apiSchema = createSchema(require('./resources/apischema.json'));
 
 
 module.exports = function(RED) {
@@ -21,7 +21,7 @@ module.exports = function(RED) {
             self.res = res;
 
             gwcon.apiHandler({
-                'ressource': 'devices'
+                'resource': 'devices'
             });
         });
 
@@ -100,7 +100,7 @@ module.exports = function(RED) {
             }
 
             try {
-                // validate against predefined schema (in ressources/apischema.json)
+                // validate against predefined schema (in resources/apischema.json)
                 apiSchema.validate(msg.payload);
                 gwcon.apiHandler(msg.payload);
             } catch (err) {

@@ -123,27 +123,27 @@
     <p>This node facilitates flows in sending json objects to EnOcean API more easier than using HTTP modules.</p>
     <p><code>enocean out</code> is preferably used when a state change on a device needs to be applied, even though information can be retrieved too (e.g. requesting device states). A state can be requested on both, bidirectional and unidirectional enocean devices. Whereas only bidirectional EnOcean devices will accept changes to their state.</p>
 
-    <p><b>Usage, API ressources</b></p>
-    <p><code>enocean out</code> composes http requests and responds accordingly, when JSON messages are injected adequately. A json object is expected to contain a <code>payload</code> property that will address one ressource out of state(s), device(s), profile(s) or API info. { payload: <code>...</code> }</p>
+    <p><b>Usage, API resources</b></p>
+    <p><code>enocean out</code> composes http requests and responds accordingly, when JSON messages are injected adequately. A json object is expected to contain a <code>payload</code> property that will address one resource out of state(s), device(s), profile(s) or API info. { payload: <code>...</code> }</p>
     <ul>
-        <li><code>{"ressource" : "states"}</code></li>
-        <li><code>{"ressource" : "devices"}</code></li>
-        <li><code>{"ressource" : "profiles"}</code></li>
+        <li><code>{"resource" : "states"}</code></li>
+        <li><code>{"resource" : "devices"}</code></li>
+        <li><code>{"resource" : "profiles"}</code></li>
     </ul>
 
-    <p>Requests can be targeted, that will include more information for each ressource. Specifically setting <code>items</code> array will result in a single respond for any item given. Valid items are provided with <code>deviceId</code>, <code>friendlyId</code> or any <code>profileId</code>.</p>
+    <p>Requests can be targeted, that will include more information for each resource. Specifically setting <code>items</code> array will result in a single respond for any item given. Valid items are provided with <code>deviceId</code>, <code>friendlyId</code> or any <code>profileId</code>.</p>
 
     <p>Sample requests:</p>
     <ul>
-        <li><code>{"ressource" : "states", "items" : ["FFDDBBCC", "kitchenThermostat"]}</code></li>
-        <li><code>{"ressource" : "devices", "items" : ["kitchenThermostat"]}</code></li>
-        <li><code>{"ressource" : "profiles", "items" : ["FFDDBBCC", "F6-02-01"]}</code></li>
+        <li><code>{"resource" : "states", "items" : ["FFDDBBCC", "kitchenThermostat"]}</code></li>
+        <li><code>{"resource" : "devices", "items" : ["kitchenThermostat"]}</code></li>
+        <li><code>{"resource" : "profiles", "items" : ["FFDDBBCC", "F6-02-01"]}</code></li>
     </ul>
 
     <p><b>Change device state</b></p>
     <p>The schema looks pretty much the same as requesting a state, except that you need to give a new <code>state</code>. A property identically named takes care of it.</p>
 
-    <p><code>{ "ressource" : "states", "items" : ["kitchenLight"], "state": { "functions" : [{"key": "dimValue", "value" : "70"}] }}</code></p>
+    <p><code>{ "resource" : "states", "items" : ["kitchenLight"], "state": { "functions" : [{"key": "dimValue", "value" : "70"}] }}</code></p>
 
     <p><b>How state should look like?</b></p>
     <p>Request a device profile gives indication on which information (key-value pairs) is needed. Pick one functionGroup (a set of key-value pairs) containing a direction <code>to</code> and provide at least any key-value pair that is <b>not</b> stated with a <code>defaultValue</code>. A key-value will be set with its defaultValue automatically whenever not given.</p>

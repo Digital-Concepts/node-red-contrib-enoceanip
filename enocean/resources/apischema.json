@@ -1,7 +1,7 @@
 {
     "type" : "object",
     "properties" : {
-        "ressource" : {
+        "resource" : {
             "type" : "string",
             "required" : true
         },
