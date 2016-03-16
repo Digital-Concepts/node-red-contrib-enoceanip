@@ -5,13 +5,17 @@
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 var EventEmitter = require('events').EventEmitter;
-var request = require('request');
+var request = require('request').defaults({
+  pool: {maxSockets: Infinity}
+});
+
 
 var APIConnection = module.exports = function APIConnection(mconfig, mcredentials) {
     EventEmitter.call(this);
     var config = mconfig;
     var credentials = mcredentials;
     var stream;
+    var filter;
 
     this.getBaseURL = function() {
         return config.host + ':' + config.port;
@@ -29,6 +33,14 @@ var APIConnection = module.exports = function APIConnection(mconfig, mcredential
         stream = pstream;
     };
 
+    this.getStreamFilter = function() {
+        return filter;
+    };
+
+    this.setStreamFilter = function(pfilter) {
+        filter = pfilter;
+    };
+
     return this;
 };
 
@@ -36,7 +48,6 @@ APIConnection.prototype = Object.create(EventEmitter.prototype);
 APIConnection.API_STREAM = '/devices/stream?delimited=newLine&output=singleLine';
 APIConnection.API_PROFILES = 'profiles';
 APIConnection.API_STATES = 'states';
-
 
 APIConnection.prototype.apiHandler = function apiHandler(msg) {
 
@@ -87,8 +98,10 @@ APIConnection.prototype.doRequest = function doRequest(path, method, payload) {
             function(error, response, body) {
                 if (!error && response.statusCode === 200) {
                     self.emit('getanswer', JSON.parse(body));
+                } else if (!error && response.statusCode !== 200) {
+                    self.emit('error', response.statusCode + ":" + body);
                 } else {
-                    self.emit('error', body);
+                    self.emit('error', error);
                 }
             }).auth(this.getCredentials().username, this.getCredentials().password, false);
     } catch (e) {
@@ -100,6 +113,8 @@ APIConnection.prototype.startstream = function startstream(filter) {
     var self = this;
     self.initStage = 1;
     self.chunks = '';
+
+    self.setStreamFilter(filter);
 
     var options = {
         method: 'GET',
@@ -114,7 +129,7 @@ APIConnection.prototype.startstream = function startstream(filter) {
         if (!error && response !== undefined && response.statusCode === 200) {
             // successfull connected to stream
         } else {
-            self.emit('error', "Streaming error: " + error);
+            self.emit('error', "Error while establishing stream: " + error);
         }
     }).auth(this.getCredentials().username, this.getCredentials().password, false).on('data', function(data) {
         self.chunks += data.toString('utf8');
@@ -166,15 +181,24 @@ APIConnection.prototype.startstream = function startstream(filter) {
     });
 
     self.stream.on('error', function(err) {
-        this.emit('error', 'Streaming error: ' + err);
+        self.emit('error', 'Error during streaming: ' + err);
+        self.reconnect();
     });
 
     this.setStream(self.stream);
 };
 
 APIConnection.prototype.closeStream = function closeStream() {
-    if (this.getStream()) {
-        this.getStream().pause();
-        this.getStream().end();
-    }
+    this.getStream().abort();
+};
+
+APIConnection.prototype.reconnect = function reconnect() {
+    var self = this;
+    self.emit('warn', 'Reconnect stream connection in 5 seconds');
+    this.closeStream();
+
+    // delay reconnect by 5 seconds
+    setTimeout(function() {
+        self.startstream(self.getStreamFilter());
+    }, 5000);
 };

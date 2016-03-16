@@ -12,20 +12,24 @@ module.exports = function(RED) {
     function EnOceanGW(n) {
         RED.nodes.createNode(this, n);
         var self = this;
-        var gwcon = new APIConnection(n, this.credentials);
+        this.gwcon = new APIConnection(n, this.credentials); 
         this.config = n;
 
         // This endpoint is needed for same origin policy (cross domain protection)
         RED.httpAdmin.get('/devices', function(req, res) {
             self.req = req;
             self.res = res;
-
-            gwcon.apiHandler({
+        
+            self.gwcon.apiHandler({
                 'resource': 'devices'
             });
         });
 
-        gwcon.on('getanswer', function(response) {
+        this.gwcon.on('error', function(e) {
+            self.error("Error can't retrieve enocean devices: " + e);
+        });
+
+        this.gwcon.on('getanswer', function(response) {
             self.res.send(response.devices);
         });
     }
@@ -118,6 +122,10 @@ module.exports = function(RED) {
 
         var node = this;
 
+        var filter = {
+            direction: n.direction
+        };
+
         // Retrieve the configuration gw node
         this.gw = RED.nodes.getNode(n.gw);
 
@@ -165,7 +173,7 @@ module.exports = function(RED) {
         });
 
         node.gwcon.on('error', function(e) {
-            node.error("Network error: " + e);
+            node.error("Enocean stream stopped: " + e);
             node.status({
                 fill: 'red',
                 shape: "ring",
@@ -173,20 +181,26 @@ module.exports = function(RED) {
             });
         });
 
+        node.gwcon.on('warn', function(e) {
+            node.warn("Enocean stream stopped, try reconnecting: " + e);
+            node.status({
+                fill: 'yellow',
+                shape: "ring",
+                text: "reconnecting"
+            });
+        });
+
+        /*NODE-RED events*/
+        this.on('close', function() {
+            node.gwcon.closeStream();
+        });  
+
         node.status({
             fill: 'yellow',
             shape: "ring",
             text: "connecting"
         });
 
-        /*NODE-RED events*/
-        this.on('close', function() {
-            node.gwcon.closeStream();
-        });
-
-        var filter = {
-            direction: n.direction
-        };
         node.gwcon.startstream(filter);
     }
     RED.nodes.registerType("enocean in", EnOceanInNode);
