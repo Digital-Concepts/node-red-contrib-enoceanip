@@ -3,12 +3,12 @@
   "author": {
     "name": "Dominic Böhler"
   },
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "I/O nodes for Node-RED to communicate with EnOcean API. Copyright (c) 2016 Digital Concepts",
   "dependencies": {
-    "request" : "~2.69.0",
-    "json-gate" : "~0.8.22"
-    },
+    "request": "~2.69.0",
+    "json-gate": "~0.8.22"
+  },
   "keywords": [
     "node-red",
     "enocean",
@@ -30,7 +30,8 @@
     {
       "name": "Dominic Böhler",
       "email": "dominic.boehler@digital-concepts.eu"
-    }],
+    }
+  ],
   "main": "enocean/enoceansuite.js",
   "license": "MIT"
 }
