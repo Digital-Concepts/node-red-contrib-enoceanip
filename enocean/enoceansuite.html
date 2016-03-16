@@ -315,7 +315,7 @@
 
                 $.ajax({
                     type: "GET",
-                    url: "/devices",
+                    url: "/" + node.gw + "/devices",
                     dataType: 'json',
                     success: function(data) {
                         $("#node-input-status-target-container").empty();
@@ -440,6 +440,7 @@
 
             $("#node-input-gw").change(function() {
                 node.gw = $("#node-input-gw option:selected").val();
+                createNodeList();
             });
 
             function dialogResize() {

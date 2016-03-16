@@ -16,7 +16,7 @@ module.exports = function(RED) {
         this.config = n;
 
         // This endpoint is needed for same origin policy (cross domain protection)
-        RED.httpAdmin.get('/devices', function(req, res) {
+        RED.httpAdmin.get('/' + n.id +'/devices', function(req, res) {
             self.req = req;
             self.res = res;
         
