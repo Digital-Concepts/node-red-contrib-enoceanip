@@ -75,7 +75,20 @@ module.exports = function(RED) {
         };
 
         gwcon.on('error', errorFunction);
-
+        
+        gwcon.on('sentMessageLater', function(response) {
+            if (node.config.outputs === 1) {
+                var msg = {
+                    payload: response
+                };
+                node.send(msg);
+            }
+            node.status({
+                fill: 'green',
+                shape: "ring",
+                text: "will message sent later"
+            });
+        });
         gwcon.on('getanswer', function(response) {
             if (node.config.outputs === 1) {
                 var msg = {
