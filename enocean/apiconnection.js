@@ -98,7 +98,9 @@ APIConnection.prototype.doRequest = function doRequest(path, method, payload) {
             function(error, response, body) {
                 if (!error && response.statusCode === 200) {
                     self.emit('getanswer', JSON.parse(body));
-                } else if (!error && response.statusCode !== 200) {
+                } else if (!error && response.statusCode === 202) {
+                    self.emit('sentMessageLater', JSON.parse(body));
+                }  else if (!error && response.statusCode !== 200) {
                     self.emit('error', response.statusCode + ":" + body);
                 } else {
                     self.emit('error', error);
