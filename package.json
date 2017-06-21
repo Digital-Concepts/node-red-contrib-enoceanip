@@ -4,7 +4,7 @@
     "name": "Dominic Böhler"
   },
   "version": "0.1.1",
-  "description": "I/O nodes for Node-RED to communicate with EnOcean API. Copyright (c) 2016 Digital Concepts",
+  "description": "I/O nodes for Node-RED to communicate with EnOcean API. Copyright (c) 2017 Digital Concepts",
   "dependencies": {
     "request": "~2.69.0",
     "json-gate": "~0.8.22"

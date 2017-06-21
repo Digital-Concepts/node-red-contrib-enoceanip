@@ -13,15 +13,17 @@ Enoceanip covers two nodes that seperate incoming and outgoing communication to 
 * Node-RED 0.13.1 
 
 may run on different set up as well
-* [EnOcean REST API - running on Smart EnOcean Gateway](http://enocean-gateway.de/index.php/en) - Install hardware in your local network
+* [EnOcean REST API - running on Smart EnOcean Gateway](http://enocean-gateway.eu/en/product/) - Install hardware in your local network
 
 or
-* [EnOcean REST API - DIY (coming soon)](http://enocean-gateway.de/index.php/en) - Install software and attach EnOcean adapter on your own. (e.g. USB300 or TCM310)
+* [EnOcean REST API - DIY (coming soon)](http://enocean-gateway.eu/en/product/) - Install software and attach EnOcean adapter on your own. (e.g. USB300 or TCM310)
 
 
 ### How to install
 This process describes how to retrieve and integrate enoceanip in Node-RED (http://npmjs.org).
 
+- Install via Node-Red-Ui (recommended)
+- Manual installation:
 1. Open terminal and go to your local Node-RED folder. 
 e.g. `cd ~/.node-red` 
 2. Execute npm command to install node 
@@ -120,4 +122,4 @@ Information you may encounter:
 <p>
 
 ### Author / Copyright
-(c) 2016 Digital Concepts | Dominic Böhler | @boehlefeld
+(c) 2017 Digital Concepts | Dominic Böhler | @boehlefeld
