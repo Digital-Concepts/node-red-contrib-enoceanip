@@ -30,7 +30,9 @@ module.exports = function(RED) {
         });
 
         this.gwcon.on('getanswer', function(response) {
+            if (!self.res.headersSent) {
             self.res.send(response.devices);
+            }
         });
     }
     RED.nodes.registerType("enocean gw", EnOceanGW, {
