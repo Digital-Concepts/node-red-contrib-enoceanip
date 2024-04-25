@@ -179,6 +179,17 @@
         </select>
     </div>
 
+    <div class="form-row">
+        <label for="node-input-levelOfDetail"><i class="fa fa-filter"></i> Detail level</label>
+        <select id="node-input-levelOfDetail">
+            <option value="full">Full</option>
+            <option value="high">High</option>
+            <option selected value="medium">Medium</option>
+            <option value="low">Low</option>
+            <option value="minimal">Minimal</option>
+        </select>
+    </div>
+
 
     <div class="form-row" style="display: none;">
         <label for="node-input-devicefilter"><i class="fa fa-filter"></i>  Device filter</label>
@@ -187,8 +198,6 @@
             <option value="target"> Selected</options>
         </select>
     </div>
-    
-
     <div class="form-tips">
         <p>Among direction filter options <code>from</code>, <code>to</code> and <code>both</code> you can limit telegrams if they have been received (from) by the gateway or sent (to) towards enocean devices.</p>
         <p><code>from</code> does include feedbacks from sensors and actuators as well.</p>
@@ -273,6 +282,10 @@
             },
             direction: {
                 value: "from",
+                required: true
+            },
+            levelOfDetail: {
+                value: "medium",
                 required: true
             },
             statesflag: {
@@ -415,12 +428,7 @@
                 var option = $(this).children("option:selected").val();
                 $(".node-input-target-row").hide();
             });
-
-            if (this.devices !== null) {
-                $("#node-input-devicefilter").val("target");
-            } else {
-                $("#node-input-devicefilter").val("none");
-            }
+            $("#node-input-devicefilter").val("none");
 
             $("#node-input-gw").change(function() {
                 node.gw = $("#node-input-gw option:selected").val();

@@ -120,7 +120,7 @@ APIConnection.prototype.startstream = function startstream(filter) {
 
     var options = {
         method: 'GET',
-        uri: self.getBaseURL() + APIConnection.API_STREAM + '&direction=' + filter.direction,
+        uri: self.getBaseURL() + APIConnection.API_STREAM + '&direction=' + filter.direction + '&levelOfDetail=' + filter.levelOfDetail, 
         rejectUnauthorized: false,
         headers: {
             accept: '*/*'
