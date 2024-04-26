@@ -30,7 +30,7 @@ module.exports = function(RED) {
         });
 
         this.gwcon.on('getanswer', function(response) {
-            while (!self.res.headersSent) {
+            if (!self.res.headersSent) {
                 self.res.send(response.devices);
                 }
         });

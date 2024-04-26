@@ -424,7 +424,15 @@
             $("#node-input-target-node-checkbox-all").change(function() {
                 $(".node-input-target-node-checkbox").prop('checked', this.checked);
             })
-            //hijacking this
+            $("#node-input-direction").change(function(e) {
+                var option = $(this).children("option:selected").val();
+                console.log(option)
+                if (option) {
+                    $("#node-input-direction").val(option);
+                } else {
+                    $("#node-input-direction").val("both");
+                }
+            });
             $("#node-input-levelOfDetail").change(function(e) {
                 var option = $(this).children("option:selected").val();
                 console.log(option)
