@@ -184,7 +184,7 @@
         <select id="node-input-levelOfDetail">
             <option value="full">Full</option>
             <option value="high">High</option>
-            <option selected value="medium">Medium</option>
+            <option value="medium">Medium</option>
             <option value="low">Low</option>
             <option value="minimal">Minimal</option>
         </select>
@@ -377,7 +377,7 @@
                     }
                 });
             }
-
+           
             function sortNodeList(sortOn) {
                 var currentSort = nodeList.data('currentSort');
                 var currentSortOrder = nodeList.data('currentSortOrder');
@@ -424,9 +424,15 @@
             $("#node-input-target-node-checkbox-all").change(function() {
                 $(".node-input-target-node-checkbox").prop('checked', this.checked);
             })
-            $("#node-input-devicefilter").change(function(e) {
+            //hijacking this
+            $("#node-input-levelOfDetail").change(function(e) {
                 var option = $(this).children("option:selected").val();
-                $(".node-input-target-row").hide();
+                console.log(option)
+                if (option) {
+                    $("#node-input-levelOfDetail").val(option);
+                } else {
+                    $("#node-input-levelOfDetail").val("medium");
+                }
             });
             $("#node-input-devicefilter").val("none");
 
