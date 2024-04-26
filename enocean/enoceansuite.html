@@ -179,27 +179,25 @@
         </select>
     </div>
 
-
     <div class="form-row">
+        <label for="node-input-levelOfDetail"><i class="fa fa-filter"></i> Detail level</label>
+        <select id="node-input-levelOfDetail">
+            <option value="full">Full</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+            <option value="minimal">Minimal</option>
+        </select>
+    </div>
+
+
+    <div class="form-row" style="display: none;">
         <label for="node-input-devicefilter"><i class="fa fa-filter"></i>  Device filter</label>
         <select id="node-input-devicefilter">
             <option value="none"> None</option>
             <option value="target"> Selected</options>
         </select>
     </div>
-    <div class="form-row node-input-target-row" style="display: none;">
-        <div id="node-input-status-target-container-div" style="position: relative;   box-sizing: border-box; border-radius: 2px; height: 180px;  border: 1px solid #ccc;overflow:hidden; ">
-            <div style="box-sizing: border-box; line-height: 20px; font-size: 0.8em; border-bottom: 1px solid #ddd; height: 20px;">
-                <input type="checkbox" data-i18n="[title]status.label.selectAll" id="node-input-target-node-checkbox-all" style="width: 30px; margin: 0 2px 1px 2px;">
-                <div style="display: inline-block;"><a id="node-input-target-sort-label" href="#" data-i18n="[title]status.label.sortByLabel"><span data-i18n="status.label.node">FriendlyId</span> <i class="node-input-status-sort-label-a fa fa-caret-down"></i><i class="node-input-status-sort-label-d fa fa-caret-up"></i></a></div>
-                <div style="position: absolute; right: 10px; width: 50px; display: inline-block; text-align: right;"><a id="node-input-target-sort-type" href="#" data-i18n="[title]status.label.sortByType"><i class="node-input-status-sort-sublabel-a fa fa-caret-down"></i><i class="node-input-status-sort-sublabel-d fa fa-caret-up"></i> <span data-i18n="status.label.type">DeviceId</span></a></div>
-            </div>
-            <div style="background: #fbfbfb; box-sizing: border-box; position:absolute; top:20px;bottom:0;left:0px;right:0px; overflow-y: scroll; overflow-x: hidden;">
-                <ul id="node-input-status-target-container" style=" list-style-type:none; margin: 0;"></ul>
-            </div>
-        </div>
-    </div>
-
     <div class="form-tips">
         <p>Among direction filter options <code>from</code>, <code>to</code> and <code>both</code> you can limit telegrams if they have been received (from) by the gateway or sent (to) towards enocean devices.</p>
         <p><code>from</code> does include feedbacks from sensors and actuators as well.</p>
@@ -284,6 +282,10 @@
             },
             direction: {
                 value: "from",
+                required: true
+            },
+            levelOfDetail: {
+                value: "medium",
                 required: true
             },
             statesflag: {
@@ -375,7 +377,7 @@
                     }
                 });
             }
-
+           
             function sortNodeList(sortOn) {
                 var currentSort = nodeList.data('currentSort');
                 var currentSortOrder = nodeList.data('currentSortOrder');
@@ -422,21 +424,25 @@
             $("#node-input-target-node-checkbox-all").change(function() {
                 $(".node-input-target-node-checkbox").prop('checked', this.checked);
             })
-            $("#node-input-devicefilter").change(function(e) {
+            $("#node-input-direction").change(function(e) {
                 var option = $(this).children("option:selected").val();
-                if (option === "target") {
-                    createNodeList();
-                    $(".node-input-target-row").show();
+                console.log(option)
+                if (option) {
+                    $("#node-input-direction").val(option);
                 } else {
-                    $(".node-input-target-row").hide();
+                    $("#node-input-direction").val("both");
                 }
             });
-
-            if (this.devices !== null) {
-                $("#node-input-devicefilter").val("target");
-            } else {
-                $("#node-input-devicefilter").val("none");
-            }
+            $("#node-input-levelOfDetail").change(function(e) {
+                var option = $(this).children("option:selected").val();
+                console.log(option)
+                if (option) {
+                    $("#node-input-levelOfDetail").val(option);
+                } else {
+                    $("#node-input-levelOfDetail").val("medium");
+                }
+            });
+            $("#node-input-devicefilter").val("none");
 
             $("#node-input-gw").change(function() {
                 node.gw = $("#node-input-gw option:selected").val();
