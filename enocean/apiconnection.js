@@ -4,6 +4,7 @@
 // Allow HTTPS communication with servers that use self signed certificates
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
+const fetch = require('node-fetch');
 var EventEmitter = require('events').EventEmitter;
 var request = require('request').defaults({
   pool: {maxSockets: Infinity}
@@ -120,7 +121,7 @@ APIConnection.prototype.startstream = function startstream(filter) {
 
     var options = {
         method: 'GET',
-        uri: self.getBaseURL() + APIConnection.API_STREAM + '&direction=' + filter.direction + '&levelOfDetail=' + filter.levelOfDetail, 
+        uri: self.getBaseURL() + APIConnection.API_STREAM + '&direction=' + filter.direction + '&duplicates=true' + '&levelOfDetail=' + filter.levelOfDetail, 
         rejectUnauthorized: false,
         headers: {
             accept: '*/*'
@@ -181,7 +182,6 @@ APIConnection.prototype.startstream = function startstream(filter) {
         });
         */
     });
-
     self.stream.on('error', function(err) {
         self.emit('error', 'Error during streaming: ' + err);
         self.reconnect();
@@ -190,17 +190,26 @@ APIConnection.prototype.startstream = function startstream(filter) {
     this.setStream(self.stream);
 };
 
+
 APIConnection.prototype.closeStream = function closeStream() {
-    this.getStream().abort();
+    console.log("Attempting to close stream...");
+    if (this.getStream()) {
+        this.getStream().abort();
+        console.log("Stream aborted.");
+    } else {
+        console.log("No stream available to abort.");
+    }
 };
 
 APIConnection.prototype.reconnect = function reconnect() {
     var self = this;
     self.emit('warn', 'Reconnect stream connection in 5 seconds');
     this.closeStream();
+    console.log("going through the reconnect");
 
+    //this is just starting new streams for no reason 
     // delay reconnect by 5 seconds
-    setTimeout(function() {
-        self.startstream(self.getStreamFilter());
-    }, 5000);
+//    setTimeout(function() {
+//        self.startstream(self.getStreamFilter());
+//    }, 5000);
 };
