@@ -208,8 +208,10 @@ module.exports = function(RED) {
 
         /*NODE-RED events*/
         this.on('close', function() {
+                //sets global variable handleError to false on deploy.
+                global.handleError = false;
                 node.gwcon.closeStream();
-        });
+        }); 
 
         node.status({
             fill: 'yellow',
