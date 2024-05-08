@@ -1,4 +1,3 @@
-
 'use strict';
 
 // Allow HTTPS communication with servers that use self signed certificates
@@ -9,13 +8,18 @@ var EventEmitter = require('events').EventEmitter;
 var request = require('request').defaults({
   pool: {maxSockets: Infinity}
 });
-
+var id = 1;
+var streams = {};
+streams[id] = {};
+var streamCount = 0;
+var reconnecting = false;
 
 var APIConnection = module.exports = function APIConnection(mconfig, mcredentials) {
     EventEmitter.call(this);
     var config = mconfig;
     var credentials = mcredentials;
     var stream;
+    var streams = {};
     var filter;
 
     this.getBaseURL = function() {
@@ -29,11 +33,17 @@ var APIConnection = module.exports = function APIConnection(mconfig, mcredential
     this.getStream = function() {
         return stream;
     };
+    this.getStreams = function(id) {
+        stream = streams[id];
+        return stream;
+    };
 
+    this.setStreams = function(pstream, id) {
+        streams[id] = pstream;
+    };
     this.setStream = function(pstream) {
         stream = pstream;
     };
-
     this.getStreamFilter = function() {
         return filter;
     };
@@ -112,10 +122,15 @@ APIConnection.prototype.doRequest = function doRequest(path, method, payload) {
     }
 };
 
+
+
+
 APIConnection.prototype.startstream = function startstream(filter) {
     var self = this;
     self.initStage = 1;
     self.chunks = '';
+    var id = ++streamCount; // Generate unique id for each stream
+    streams[id] = true;
 
     self.setStreamFilter(filter);
 
@@ -132,7 +147,12 @@ APIConnection.prototype.startstream = function startstream(filter) {
         if (!error && response !== undefined && response.statusCode === 200) {
             // successfull connected to stream
         } else {
-            self.emit('error', "Error while establishing stream: " + error);
+       		delete streams[id];
+        	self.emit('error', "Error while establishing stream: " + error);
+		self.stream.on('error', function(err) {
+       			self.emit('error', 'Error during streaming: ' + err);
+        		self.reconnect(id);
+		});
         }
     }).auth(this.getCredentials().username, this.getCredentials().password, false).on('data', function(data) {
         self.chunks += data.toString('utf8');
@@ -175,41 +195,51 @@ APIConnection.prototype.startstream = function startstream(filter) {
     self.stream.on('response', function(response) {
         // executed once
         self.emit('connected');
-
-        /*
-        response.on('data', function(data) {
-            // Also chunks received in here ?
-        });
-        */
     });
-    self.stream.on('error', function(err) {
-        self.emit('error', 'Error during streaming: ' + err);
-        self.reconnect();
-    });
-
+    this.setStreams(self.stream, id);
     this.setStream(self.stream);
 };
 
-
 APIConnection.prototype.closeStream = function closeStream() {
-    console.log("Attempting to close stream...");
-    if (this.getStream()) {
-        this.getStream().abort();
-        console.log("Stream aborted.");
-    } else {
-        console.log("No stream available to abort.");
-    }
+   // console.log("Attempting to close all streams...");
+   // console.log(streams);
+//    for (var currentId in streams) {
+//	if (streams.hasOwnProperty(currentId)) {
+  //          console.log("Closing stream ID: ", currentId);
+    //        var stream = this.getStreams(currentId);
+      //      if (stream) {
+  //              console.log("inside");
+		this.getStream().abort();
+//                this.getStream().abort();
+	//	console.log("Stream " + currentId + " aborted.");
+         //   }
+         //   delete streams[currentId]; 
+       // }
+   // }
+	this.getStream().abort();
+	for (var currentId in streams) {
+	      if (streams.hasOwnProperty(currentId)) {
+		delete streams[currentId];
+		}
+	}
+//	console.log(streams);
 };
 
-APIConnection.prototype.reconnect = function reconnect() {
+
+
+APIConnection.prototype.reconnect = function reconnect(id) {
     var self = this;
     self.emit('warn', 'Reconnect stream connection in 5 seconds');
+    console.log("Closing streams in reconnect");
     this.closeStream();
-    console.log("going through the reconnect");
+    console.log("going through the reconnect: " + id);
 
-    //this is just starting new streams for no reason 
     // delay reconnect by 5 seconds
-//    setTimeout(function() {
-//        self.startstream(self.getStreamFilter());
-//    }, 5000);
+    setTimeout(function() {
+        if (!streams[id]) {
+	    console.log("In the reconnect")
+            self.startstream(self.getStreamFilter());
+
+        }
+    }, 5000);
 };

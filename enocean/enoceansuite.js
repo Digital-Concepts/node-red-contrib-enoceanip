@@ -208,8 +208,8 @@ module.exports = function(RED) {
 
         /*NODE-RED events*/
         this.on('close', function() {
-            node.gwcon.closeStream();
-        });  
+                node.gwcon.closeStream();
+        });
 
         node.status({
             fill: 'yellow',
