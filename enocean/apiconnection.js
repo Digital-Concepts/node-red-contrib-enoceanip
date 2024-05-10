@@ -4,11 +4,12 @@
 // Allow HTTPS communication with servers that use self signed certificates
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
+const fetch = require('node-fetch');
 var EventEmitter = require('events').EventEmitter;
 var request = require('request').defaults({
   pool: {maxSockets: Infinity}
 });
-
+global.handleError = false;
 
 var APIConnection = module.exports = function APIConnection(mconfig, mcredentials) {
     EventEmitter.call(this);
@@ -120,18 +121,25 @@ APIConnection.prototype.startstream = function startstream(filter) {
 
     var options = {
         method: 'GET',
-        uri: self.getBaseURL() + APIConnection.API_STREAM + '&direction=' + filter.direction + '&levelOfDetail=' + filter.levelOfDetail, 
+        uri: self.getBaseURL() + APIConnection.API_STREAM + '&direction=' + filter.direction + '&duplicates=true' + '&levelOfDetail=' + filter.levelOfDetail, 
         rejectUnauthorized: false,
         headers: {
             accept: '*/*'
         }
     };
+    //Wait 5 seconds to not trigger reconnect too soon on deploy.
+    setTimeout(() => {
+        handleError = true;
+    }, 5000);  
 
     self.stream = request(options, function(error, response, body) {
         if (!error && response !== undefined && response.statusCode === 200) {
             // successfull connected to stream
         } else {
-            self.emit('error', "Error while establishing stream: " + error);
+            if (handleError) {
+                self.emit('error', "Error while establishing stream:  " + error);
+            }
+           
         }
     }).auth(this.getCredentials().username, this.getCredentials().password, false).on('data', function(data) {
         self.chunks += data.toString('utf8');
@@ -181,26 +189,33 @@ APIConnection.prototype.startstream = function startstream(filter) {
         });
         */
     });
-
+    //If handleError is set to true and an error is triggered it will attempt to reconnect the stream
     self.stream.on('error', function(err) {
-        self.emit('error', 'Error during streaming: ' + err);
-        self.reconnect();
+        if (handleError) {
+            self.emit('error', 'Error during streaming: ' + err);
+            self.reconnect();
+        }
     });
-
     this.setStream(self.stream);
 };
 
+
 APIConnection.prototype.closeStream = function closeStream() {
-    this.getStream().abort();
+    console.log("Attempting to close stream...");
+    if (this.getStream()) {
+        this.getStream().abort();
+        console.log("Stream aborted.");
+    } else {
+        console.log("No stream available to abort.");
+    }
 };
 
 APIConnection.prototype.reconnect = function reconnect() {
     var self = this;
     self.emit('warn', 'Reconnect stream connection in 5 seconds');
     this.closeStream();
-
     // delay reconnect by 5 seconds
-    setTimeout(function() {
+   setTimeout(function() {
         self.startstream(self.getStreamFilter());
     }, 5000);
 };
