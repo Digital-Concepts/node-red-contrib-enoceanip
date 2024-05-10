@@ -189,8 +189,6 @@ APIConnection.prototype.startstream = function startstream(filter) {
         });
         */
     });
-
-
     //If handleError is set to true and an error is triggered it will attempt to reconnect the stream
     self.stream.on('error', function(err) {
         if (handleError) {
@@ -216,9 +214,8 @@ APIConnection.prototype.reconnect = function reconnect() {
     var self = this;
     self.emit('warn', 'Reconnect stream connection in 5 seconds');
     this.closeStream();
-    console.log("going through the reconnect");
     // delay reconnect by 5 seconds
-    setTimeout(function() {
+   setTimeout(function() {
         self.startstream(self.getStreamFilter());
     }, 5000);
 };
