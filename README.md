@@ -27,7 +27,7 @@ This process describes how to retrieve and integrate enoceanip in Node-RED (http
 1. Open terminal and go to your local Node-RED folder. 
 e.g. `cd ~/.node-red` 
 2. Execute npm command to install node 
-`npm install node-red-contrib-enoceanip`
+`npm install node-red-contrib-enoceanip-dcnext`
 3. Restart Node-RED
 4. Reload Node-RED Web UI
 5. Find "enocean" nodes underneath categories Input and Output
@@ -121,5 +121,5 @@ Information you may encounter:
 
 <p>
 
-### Author / Copyright
-(c) 2017 Digital Concepts | Dominic Böhler | @boehlefeld
+Copyright
+(c) 2024 Digital Concepts
