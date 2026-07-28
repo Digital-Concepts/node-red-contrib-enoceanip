@@ -4,7 +4,6 @@
 // Allow HTTPS communication with servers that use self signed certificates
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
-const fetch = require('node-fetch');
 var EventEmitter = require('events').EventEmitter;
 var request = require('request').defaults({
   pool: {maxSockets: Infinity}
