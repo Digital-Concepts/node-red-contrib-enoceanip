@@ -2,15 +2,22 @@ on:
   push:
     branches: master
 
+# OIDC trusted publishing: no NPM_TOKEN. id-token: write lets the runner mint the
+# short-lived OIDC token npm exchanges for publish rights (and provenance).
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+      # Trusted publishing requires npm >= 11.5.1 (node 22 ships npm 10).
+      - run: npm install -g npm@11
       - run: npm ci
-      - uses: JS-DevTools/npm-publish@v3
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
+      - run: npm publish
